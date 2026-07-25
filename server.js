@@ -6,6 +6,7 @@ const path = require('path');
 
 const Item = require('./models/Item');
 const Pedido = require('./models/Pedido');
+const cardapio = require('./cardapio');
 
 const app = express();
 app.use(cors());
@@ -38,6 +39,23 @@ async function garantirDadosIniciais() {
   }
 }
 garantirDadosIniciais();
+
+// Rota especial pra cadastrar o cardápio inteiro de uma vez, abrindo esse
+// link uma unica vez no navegador (depois pode esquecer que ela existe):
+// https://SEU-LINK.onrender.com/api/cadastrar-cardapio?chave=valdir123
+app.get('/api/cadastrar-cardapio', async (req, res) => {
+  const chave = req.query.chave;
+  if (chave !== 'valdir123') {
+    return res.status(403).send('Chave incorreta.');
+  }
+  try {
+    await Item.deleteMany({});
+    await Item.insertMany(cardapio);
+    res.send(`Cardápio cadastrado com sucesso! ${cardapio.length} itens no banco.`);
+  } catch (err) {
+    res.status(500).send('Erro ao cadastrar: ' + err.message);
+  }
+});
 
 // ---------- ITENS DO CARDAPIO ----------
 
