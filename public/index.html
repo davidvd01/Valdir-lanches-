@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valdir Lanches</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <span class="topbar-titulo">VALDIR LANCHES</span>
+</header>
+
+<div class="corpo">
+  <nav class="menu-lateral">
+    <button class="menu-item ativo" data-secao="mesas">Mesas</button>
+    <button class="menu-item" data-secao="outros">Outros</button>
+  </nav>
+
+  <main class="conteudo">
+    <!-- SECAO MESAS -->
+    <section id="secao-mesas" class="secao">
+      <div class="grade-cards" id="grade-mesas"></div>
+      <button class="btn-adicionar" id="btn-add-mesa">+ Adicionar mesa</button>
+    </section>
+
+    <!-- SECAO OUTROS -->
+    <section id="secao-outros" class="secao escondida">
+      <div class="grade-cards" id="grade-outros"></div>
+      <button class="btn-adicionar" id="btn-add-outros">+ Adicionar mais pedido</button>
+    </section>
+  </main>
+</div>
+
+<!-- TELA DO PEDIDO (mesa ou outros) -->
+<div id="tela-pedido" class="overlay escondida">
+  <div class="painel-pedido">
+    <div class="painel-cabecalho">
+      <div>
+        <h2 id="pedido-titulo">Mesa 1</h2>
+        <div class="comanda-linha">
+          Comanda:
+          <span id="pedido-comanda">--</span>
+          <button id="btn-editar-comanda" class="btn-link">definir</button>
+        </div>
+      </div>
+      <button id="btn-fechar-painel" class="btn-fechar">×</button>
+    </div>
+
+    <div class="busca-wrapper">
+      <input type="text" id="busca-item" placeholder="🔎 Buscar item no cardápio..." autocomplete="off">
+      <div id="sugestoes" class="sugestoes escondida"></div>
+    </div>
+
+    <div class="lista-itens" id="lista-itens"></div>
+
+    <div class="painel-rodape">
+      <div class="total-linha">Total: <span id="pedido-total">R$ 0,00</span></div>
+      <button id="btn-finalizar" class="btn-finalizar">Finalizar conta</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL QUANTIDADE / DIVERSOS -->
+<div id="modal-item" class="overlay escondida">
+  <div class="modal-caixa">
+    <h3 id="modal-item-nome">Item</h3>
+    <div class="campo" id="campo-preco-diverso">
+      <label>Valor (R$)</label>
+      <input type="number" step="0.01" id="modal-preco">
+    </div>
+    <div class="campo">
+      <label>Quantidade</label>
+      <div class="qtd-controle">
+        <button id="qtd-menos">−</button>
+        <span id="qtd-valor">1</span>
+        <button id="qtd-mais">+</button>
+      </div>
+    </div>
+    <div class="modal-botoes">
+      <button id="modal-cancelar" class="btn-secundario">Cancelar</button>
+      <button id="modal-confirmar" class="btn-primario">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMACAO GENERICA -->
+<div id="modal-confirmacao" class="overlay escondida">
+  <div class="modal-caixa">
+    <p id="confirmacao-texto">Tem certeza?</p>
+    <div class="modal-botoes">
+      <button id="confirmacao-nao" class="btn-secundario">Não</button>
+      <button id="confirmacao-sim" class="btn-primario">Sim</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
