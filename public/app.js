@@ -36,7 +36,7 @@ function criarCardMesa(pedido) {
   div.className = 'card-mesa' + (pedido.itens.length ? ' ocupada' : '');
   div.innerHTML = `
     <div class="card-numero">${pedido.numero}</div>
-    <div class="card-comanda">Comanda: ${pedido.comanda ? pedido.comanda : '--'}</div>
+    <div class="card-comanda">Comanda: <span class="valor-comanda${pedido.comanda ? ' definida' : ''}">${pedido.comanda ? pedido.comanda : '--'}</span></div>
     <div class="card-total ${pedido.itens.length ? '' : 'vazio'}">
       ${pedido.itens.length ? formatarReais(total) : 'Sem pedido'}
     </div>
@@ -77,11 +77,17 @@ async function garantirPrimeiroOutros() {
 function abrirPainelPedido(pedido, titulo) {
   pedidoAtual = pedido;
   document.getElementById('pedido-titulo').textContent = titulo;
-  document.getElementById('pedido-comanda').textContent = pedido.comanda || '--';
+  atualizarComandaNoPainel();
   renderizarItens();
   document.getElementById('busca-item').value = '';
   document.getElementById('sugestoes').classList.add('escondida');
   document.getElementById('tela-pedido').classList.remove('escondida');
+}
+
+function atualizarComandaNoPainel() {
+  const span = document.getElementById('pedido-comanda');
+  span.textContent = pedidoAtual.comanda || '--';
+  span.classList.toggle('definida', !!pedidoAtual.comanda);
 }
 
 document.getElementById('btn-fechar-painel').addEventListener('click', () => {
@@ -100,7 +106,7 @@ document.getElementById('btn-editar-comanda').addEventListener('click', async ()
     body: JSON.stringify({ comanda: numero })
   });
   pedidoAtual = await resp.json();
-  document.getElementById('pedido-comanda').textContent = pedidoAtual.comanda || '--';
+  atualizarComandaNoPainel();
 });
 
 function renderizarItens() {
@@ -181,12 +187,16 @@ function abrirModalItem(item) {
   document.getElementById('modal-item-titulo').textContent = item.nome;
   document.getElementById('qtd-valor').textContent = qtdModal;
   document.getElementById('modal-observacao').value = '';
-  document.getElementById('campo-nome-item').classList.add('escondida');
+  document.getElementById('modal-nome').value = '';
+  const campoNome = document.getElementById('campo-nome-item');
   const campoPreco = document.getElementById('campo-preco-diverso');
   if (item.diverso) {
+    campoNome.classList.remove('escondida');
     campoPreco.classList.remove('escondida');
     document.getElementById('modal-preco').value = '';
+    document.querySelector('#campo-nome-item label').textContent = 'O que é? (aparece no lugar de "Diversos")';
   } else {
+    campoNome.classList.add('escondida');
     campoPreco.classList.add('escondida');
   }
   document.getElementById('modal-confirmar').textContent = 'Adicionar';
@@ -200,6 +210,7 @@ function abrirModalEdicao(itemDoPedido) {
   document.getElementById('modal-item-titulo').textContent = 'Alterar item';
   document.getElementById('qtd-valor').textContent = qtdModal;
   document.getElementById('campo-nome-item').classList.remove('escondida');
+  document.querySelector('#campo-nome-item label').textContent = 'Nome do item';
   document.getElementById('modal-nome').value = itemDoPedido.nome;
   document.getElementById('campo-preco-diverso').classList.remove('escondida');
   document.getElementById('modal-preco').value = itemDoPedido.preco;
@@ -239,13 +250,16 @@ document.getElementById('modal-confirmar').addEventListener('click', async () =>
     pedidoAtual = await resp.json();
   } else if (itemSelecionado) {
     let preco = itemSelecionado.preco;
+    let nome = itemSelecionado.nome;
     if (itemSelecionado.diverso) {
       preco = parseFloat(document.getElementById('modal-preco').value) || 0;
+      const nomeDigitado = document.getElementById('modal-nome').value.trim();
+      if (nomeDigitado) nome = nomeDigitado;
     }
     const resp = await fetch(`${API}/pedidos/${pedidoAtual._id}/itens`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome: itemSelecionado.nome, preco, quantidade: qtdModal, observacao })
+      body: JSON.stringify({ nome, preco, quantidade: qtdModal, observacao })
     });
     pedidoAtual = await resp.json();
   }
