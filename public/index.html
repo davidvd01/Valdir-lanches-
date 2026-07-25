@@ -16,6 +16,8 @@
   <nav class="menu-lateral">
     <button class="menu-item ativo" data-secao="mesas">Mesas</button>
     <button class="menu-item" data-secao="outros">Outros</button>
+    <button class="menu-item" data-secao="cardapio">Cardápio</button>
+    <button class="menu-item" data-secao="finalizados">Finalizados</button>
   </nav>
 
   <main class="conteudo">
@@ -29,6 +31,27 @@
     <section id="secao-outros" class="secao escondida">
       <div class="grade-cards" id="grade-outros"></div>
       <button class="btn-adicionar" id="btn-add-outros">+ Adicionar mais pedido</button>
+    </section>
+
+    <!-- SECAO CARDAPIO -->
+    <section id="secao-cardapio" class="secao escondida">
+      <div class="cardapio-topo">
+        <input type="text" id="cardapio-busca" placeholder="🔎 Filtrar cardápio...">
+        <button class="btn-adicionar" id="btn-novo-item">+ Novo item</button>
+      </div>
+      <div class="lista-cardapio" id="lista-cardapio"></div>
+    </section>
+
+    <!-- SECAO FINALIZADOS -->
+    <section id="secao-finalizados" class="secao escondida">
+      <div class="finalizados-topo">
+        <input type="date" id="finalizados-data">
+      </div>
+      <div class="lista-finalizados" id="lista-finalizados"></div>
+      <div class="rodape-caixa">
+        <div class="total-caixa">Total do dia: <span id="total-caixa">R$ 0,00</span></div>
+        <button class="btn-finalizar" id="btn-fechar-caixa">Fechar caixa</button>
+      </div>
     </section>
   </main>
 </div>
@@ -65,7 +88,11 @@
 <!-- MODAL QUANTIDADE / DIVERSOS -->
 <div id="modal-item" class="overlay escondida">
   <div class="modal-caixa">
-    <h3 id="modal-item-nome">Item</h3>
+    <h3 id="modal-item-titulo">Item</h3>
+    <div class="campo escondida" id="campo-nome-item">
+      <label>Nome do item</label>
+      <input type="text" id="modal-nome">
+    </div>
     <div class="campo" id="campo-preco-diverso">
       <label>Valor (R$)</label>
       <input type="number" step="0.01" id="modal-preco">
@@ -78,9 +105,37 @@
         <button id="qtd-mais">+</button>
       </div>
     </div>
+    <div class="campo">
+      <label>Observação (opcional)</label>
+      <input type="text" id="modal-observacao" placeholder="Ex: sem tomate, bem passado...">
+    </div>
     <div class="modal-botoes">
       <button id="modal-cancelar" class="btn-secundario">Cancelar</button>
       <button id="modal-confirmar" class="btn-primario">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE ITEM DO CARDAPIO (gerenciar) -->
+<div id="modal-cardapio-item" class="overlay escondida">
+  <div class="modal-caixa">
+    <h3 id="cardapio-modal-titulo">Novo item</h3>
+    <div class="campo">
+      <label>Nome</label>
+      <input type="text" id="cardapio-modal-nome">
+    </div>
+    <div class="campo">
+      <label>Preço (R$)</label>
+      <input type="number" step="0.01" id="cardapio-modal-preco">
+    </div>
+    <div class="campo">
+      <label>Categoria</label>
+      <input type="text" id="cardapio-modal-categoria" placeholder="Ex: Hamburguer, Bebida...">
+    </div>
+    <div class="modal-botoes">
+      <button id="cardapio-modal-excluir" class="btn-secundario excluir-texto">Excluir</button>
+      <button id="cardapio-modal-cancelar" class="btn-secundario">Cancelar</button>
+      <button id="cardapio-modal-salvar" class="btn-primario">Salvar</button>
     </div>
   </div>
 </div>

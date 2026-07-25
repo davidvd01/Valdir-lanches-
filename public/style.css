@@ -131,6 +131,75 @@ html, body {
 }
 .btn-adicionar:hover { background: #fff5ea; }
 
+/* ---------- CARDAPIO ---------- */
+.cardapio-topo {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 20px;
+  max-width: 780px;
+}
+#cardapio-busca {
+  flex: 1;
+  padding: 12px 14px;
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  font-size: 15px;
+}
+.lista-cardapio { max-width: 780px; }
+.linha-cardapio {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--borda);
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+.linha-cardapio:hover { border-color: var(--vinho-claro); }
+.linha-cardapio .cat { font-size: 12px; color: #a99c8c; display: block; }
+.linha-cardapio .nome-item { font-weight: 600; }
+.linha-cardapio .preco-item { font-weight: 700; color: var(--vinho); }
+.excluir-texto { color: var(--vermelho); border-color: var(--vermelho); }
+
+/* ---------- FINALIZADOS ---------- */
+.finalizados-topo { margin-bottom: 18px; }
+#finalizados-data {
+  padding: 10px 14px;
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  font-size: 15px;
+}
+.lista-finalizados { max-width: 780px; margin-bottom: 20px; }
+.linha-finalizado {
+  background: #fff;
+  border: 1px solid var(--borda);
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 10px;
+}
+.linha-finalizado .topo-fin {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.linha-finalizado .titulo-fin { font-weight: 700; }
+.linha-finalizado .hora-fin { font-size: 12px; color: #a99c8c; }
+.linha-finalizado .total-fin { font-weight: 700; color: var(--vinho); }
+.linha-finalizado .itens-fin { font-size: 13px; color: #7a7168; margin-top: 6px; }
+.linha-finalizado .btn-icone.excluir { margin-top: 8px; }
+.vazio-fin { color: #b7ada0; padding: 30px 0; }
+
+.rodape-caixa {
+  max-width: 780px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 2px solid var(--borda);
+  padding-top: 18px;
+}
+.total-caixa { font-size: 22px; font-weight: 800; }
+#total-caixa { color: var(--vinho); }
+
 /* ---------- OVERLAY / PAINEL DE PEDIDO ---------- */
 .overlay {
   position: fixed;
@@ -219,6 +288,7 @@ html, body {
 }
 .linha-item .nome { font-weight: 600; }
 .linha-item .qtd { color: #7a7168; font-size: 14px; margin-left: 8px; }
+.obs-item { font-size: 13px; color: #a97a2e; font-style: italic; margin-top: 2px; }
 .linha-item .direita { display: flex; align-items: center; gap: 14px; }
 .linha-item .subtotal { font-weight: 700; min-width: 80px; text-align: right; }
 .btn-icone {

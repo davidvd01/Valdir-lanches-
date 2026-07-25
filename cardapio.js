@@ -39,13 +39,13 @@ module.exports = [
   { nome: 'Pop Frangão', preco: 21.50, categoria: 'Frango' },
   { nome: 'Fran-Bacon', preco: 25.00, categoria: 'Frango' },
   { nome: 'Frango com Catupiry', preco: 18.50, categoria: 'Frango' },
-  { nome: 'Frango com Cheddar', preco: 18.50, categoria: 'Frango' },
-  { nome: 'Frango Dois Queijos', preco: 21.00, categoria: 'Frango' },
-  { nome: 'Frango Dois Queijos Salada', preco: 23.00, categoria: 'Frango' },
-  { nome: 'Frango Três Queijos', preco: 22.00, categoria: 'Frango' },
-  { nome: 'Frango Três Queijos Salada', preco: 24.00, categoria: 'Frango' },
-  { nome: 'Frango Quatro Queijos', preco: 24.00, categoria: 'Frango' },
-  { nome: 'Frango Quatro Queijos Salada', preco: 26.00, categoria: 'Frango' },
+  { nome: '45 - Frango com Cheddar', preco: 18.50, categoria: 'Frango' },
+  { nome: '46 - Frango Dois Queijos', preco: 21.00, categoria: 'Frango' },
+  { nome: '47 - Frango Dois Queijos Salada', preco: 23.00, categoria: 'Frango' },
+  { nome: '48 - Frango Três Queijos', preco: 22.00, categoria: 'Frango' },
+  { nome: '49 - Frango Três Queijos Salada', preco: 24.00, categoria: 'Frango' },
+  { nome: '52 - Frango Quatro Queijos', preco: 24.00, categoria: 'Frango' },
+  { nome: '54 - Frango Quatro Queijos Salada', preco: 26.00, categoria: 'Frango' },
 
   // Lanches de Churrasco
   { nome: 'Churrasco Simples', preco: 18.00, categoria: 'Churrasco' },
@@ -74,9 +74,9 @@ module.exports = [
   { nome: 'Cachorro-Quente Simples Duplo', preco: 16.50, categoria: 'Cachorro-Quente' },
   { nome: 'Cachorro-Quente Especial', preco: 20.50, categoria: 'Cachorro-Quente' },
   { nome: 'Cachorro-Quente Especial Duplo', preco: 21.50, categoria: 'Cachorro-Quente' },
-  { nome: 'Cachorro-Quente Duplo com Catupiry', preco: 20.00, categoria: 'Cachorro-Quente' },
-  { nome: 'Cachorro-Quente Duplo com Cheddar', preco: 20.00, categoria: 'Cachorro-Quente' },
-  { nome: 'Cachorro-Quente Duplo Especial com Catupiry ou Cheddar', preco: 25.00, categoria: 'Cachorro-Quente' },
+  { nome: '42 - Cachorro-Quente Duplo com Catupiry', preco: 20.00, categoria: 'Cachorro-Quente' },
+  { nome: '43 - Cachorro-Quente Duplo com Cheddar', preco: 20.00, categoria: 'Cachorro-Quente' },
+  { nome: '44 - Cachorro-Quente Duplo Especial com Catupiry ou Cheddar', preco: 25.00, categoria: 'Cachorro-Quente' },
 
   // Suco Natural / Sucos de Polpa
   { nome: 'Suco de Laranja', preco: 9.00, categoria: 'Suco' },

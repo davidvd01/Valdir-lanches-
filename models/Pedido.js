@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const ItemPedidoSchema = new mongoose.Schema({
   nome: { type: String, required: true },
   preco: { type: Number, required: true },
-  quantidade: { type: Number, required: true, default: 1 }
+  quantidade: { type: Number, required: true, default: 1 },
+  observacao: { type: String, default: '' }
 }, { _id: true });
 
 const PedidoSchema = new mongoose.Schema({

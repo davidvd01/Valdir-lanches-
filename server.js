@@ -6,6 +6,7 @@ const path = require('path');
 
 const Item = require('./models/Item');
 const Pedido = require('./models/Pedido');
+const Finalizado = require('./models/Finalizado');
 const cardapio = require('./cardapio');
 
 const app = express();
@@ -85,6 +86,37 @@ app.post('/api/itens', async (req, res) => {
   }
 });
 
+// Listar todos os itens do cardapio (pra tela de gerenciar o cardapio)
+app.get('/api/itens/todos', async (req, res) => {
+  const itens = await Item.find().sort({ categoria: 1, nome: 1 });
+  res.json(itens);
+});
+
+// Editar item do cardapio (nome, preco ou categoria)
+app.put('/api/itens/:id', async (req, res) => {
+  try {
+    const { nome, preco, categoria } = req.body;
+    const item = await Item.findByIdAndUpdate(
+      req.params.id,
+      { nome, preco, categoria },
+      { new: true }
+    );
+    res.json(item);
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+// Apagar item do cardapio
+app.delete('/api/itens/:id', async (req, res) => {
+  try {
+    await Item.findByIdAndDelete(req.params.id);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
 // ---------- MESAS ----------
 
 app.get('/api/mesas', async (req, res) => {
@@ -126,10 +158,10 @@ app.post('/api/outros', async (req, res) => {
 // Adicionar item ao pedido
 app.post('/api/pedidos/:id/itens', async (req, res) => {
   try {
-    const { nome, preco, quantidade } = req.body;
+    const { nome, preco, quantidade, observacao } = req.body;
     const pedido = await Pedido.findById(req.params.id);
     if (!pedido) return res.status(404).json({ erro: 'Pedido nao encontrado' });
-    pedido.itens.push({ nome, preco, quantidade: quantidade || 1 });
+    pedido.itens.push({ nome, preco, quantidade: quantidade || 1, observacao: observacao || '' });
     await pedido.save();
     res.json(pedido);
   } catch (err) {
@@ -140,13 +172,15 @@ app.post('/api/pedidos/:id/itens', async (req, res) => {
 // Alterar item (quantidade e/ou preco - usado no lapis de editar, inclusive para "Diversos")
 app.put('/api/pedidos/:pedidoId/itens/:itemId', async (req, res) => {
   try {
-    const { quantidade, preco } = req.body;
+    const { quantidade, preco, nome, observacao } = req.body;
     const pedido = await Pedido.findById(req.params.pedidoId);
     if (!pedido) return res.status(404).json({ erro: 'Pedido nao encontrado' });
     const item = pedido.itens.id(req.params.itemId);
     if (!item) return res.status(404).json({ erro: 'Item nao encontrado' });
     if (quantidade !== undefined) item.quantidade = quantidade;
     if (preco !== undefined) item.preco = preco;
+    if (nome !== undefined) item.nome = nome;
+    if (observacao !== undefined) item.observacao = observacao;
     await pedido.save();
     res.json(pedido);
   } catch (err) {
@@ -168,10 +202,24 @@ app.delete('/api/pedidos/:pedidoId/itens/:itemId', async (req, res) => {
 });
 
 // Finalizar conta: mesa -> limpa itens e comanda (fica disponivel); outros -> remove da lista
+// Antes disso, guarda uma copia no historico de "Finalizados" (pra fechamento de caixa do dia)
 app.post('/api/pedidos/:id/finalizar', async (req, res) => {
   try {
     const pedido = await Pedido.findById(req.params.id);
     if (!pedido) return res.status(404).json({ erro: 'Pedido nao encontrado' });
+
+    if (pedido.itens.length > 0) {
+      const total = pedido.itens.reduce((s, i) => s + i.preco * i.quantidade, 0);
+      await Finalizado.create({
+        tipo: pedido.tipo,
+        numero: pedido.numero,
+        comanda: pedido.comanda,
+        itens: pedido.itens.map(i => ({
+          nome: i.nome, preco: i.preco, quantidade: i.quantidade, observacao: i.observacao
+        })),
+        total
+      });
+    }
 
     if (pedido.tipo === 'mesa') {
       pedido.itens = [];
@@ -182,6 +230,51 @@ app.post('/api/pedidos/:id/finalizar', async (req, res) => {
       await pedido.deleteOne();
       return res.json({ ok: true });
     }
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+// ---------- FINALIZADOS (historico do dia / fechamento de caixa) ----------
+
+// Lista os finalizados de um dia (padrao: hoje). Use ?data=YYYY-MM-DD
+app.get('/api/finalizados', async (req, res) => {
+  try {
+    const dataParam = req.query.data; // 'YYYY-MM-DD'
+    const dia = dataParam ? new Date(dataParam + 'T00:00:00') : new Date();
+    const inicio = new Date(dia); inicio.setHours(0, 0, 0, 0);
+    const fim = new Date(dia); fim.setHours(23, 59, 59, 999);
+
+    const finalizados = await Finalizado.find({
+      finalizadoEm: { $gte: inicio, $lte: fim }
+    }).sort({ finalizadoEm: -1 });
+
+    res.json(finalizados);
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+// Remove um item do historico (limpar um registro especifico)
+app.delete('/api/finalizados/:id', async (req, res) => {
+  try {
+    await Finalizado.findByIdAndDelete(req.params.id);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+// Limpa todo o historico de um dia (usado depois de fechar o caixa, se quiser)
+app.delete('/api/finalizados', async (req, res) => {
+  try {
+    const dataParam = req.query.data;
+    if (!dataParam) return res.status(400).json({ erro: 'Informe a data' });
+    const dia = new Date(dataParam + 'T00:00:00');
+    const inicio = new Date(dia); inicio.setHours(0, 0, 0, 0);
+    const fim = new Date(dia); fim.setHours(23, 59, 59, 999);
+    await Finalizado.deleteMany({ finalizadoEm: { $gte: inicio, $lte: fim } });
+    res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ erro: err.message });
   }
