@@ -280,4 +280,16 @@ app.delete('/api/finalizados', async (req, res) => {
   }
 });
 
+// Reseta a numeracao de "Outros": apaga os pedidos avulsos vazios (sem itens)
+// pra que o proximo pedido criado volte a comecar do numero 1.
+// Pedidos com itens dentro sao preservados, pra nao perder nada em aberto.
+app.post('/api/outros/reiniciar-numeracao', async (req, res) => {
+  try {
+    await Pedido.deleteMany({ tipo: 'outros', itens: { $size: 0 } });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
 app.listen(PORT, () => console.log(`Valdir Lanches rodando na porta ${PORT}`));

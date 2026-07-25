@@ -59,7 +59,10 @@ function criarCardMesa(pedido) {
       ${pedido.itens.length ? formatarReais(total) : 'Sem pedido'}
     </div>
   `;
-  div.addEventListener('click', () => abrirPainelPedido(pedido, `Mesa ${pedido.numero}`));
+  div.addEventListener('click', () => {
+    const titulo = pedido.tipo === 'mesa' ? `Mesa ${pedido.numero}` : `Pedido ${pedido.numero}`;
+    abrirPainelPedido(pedido, titulo);
+  });
   return div;
 }
 
@@ -483,6 +486,7 @@ document.getElementById('confirmacao-sim').addEventListener('click', async () =>
   if (modalConfirmacao.dataset.acao !== 'fechar-caixa') return;
   const data = inputDataFinalizados.value || hojeISO();
   await fetch(`${API}/finalizados?data=${data}`, { method: 'DELETE' });
+  await fetch(`${API}/outros/reiniciar-numeracao`, { method: 'POST' });
   modalConfirmacao.classList.add('escondida');
   modalConfirmacao.dataset.acao = '';
   carregarFinalizados();
