@@ -28,6 +28,18 @@ async function carregarMesas() {
   const grade = document.getElementById('grade-mesas');
   grade.innerHTML = '';
   mesas.forEach(mesa => grade.appendChild(criarCardMesa(mesa)));
+  grade.appendChild(criarCardAdicionar('+ Mesa', async () => {
+    await fetch(`${API}/mesas`, { method: 'POST' });
+    carregarMesas();
+  }));
+}
+
+function criarCardAdicionar(texto, aoClicar) {
+  const div = document.createElement('div');
+  div.className = 'card-adicionar';
+  div.innerHTML = `<span class="simbolo-mais">+</span><span>${texto}</span>`;
+  div.addEventListener('click', aoClicar);
+  return div;
 }
 
 function criarCardMesa(pedido) {
@@ -45,11 +57,6 @@ function criarCardMesa(pedido) {
   return div;
 }
 
-document.getElementById('btn-add-mesa').addEventListener('click', async () => {
-  await fetch(`${API}/mesas`, { method: 'POST' });
-  carregarMesas();
-});
-
 // ---------------- CARREGAR OUTROS ----------------
 async function carregarOutros() {
   const resp = await fetch(`${API}/outros`);
@@ -57,12 +64,11 @@ async function carregarOutros() {
   const grade = document.getElementById('grade-outros');
   grade.innerHTML = '';
   pedidos.forEach(p => grade.appendChild(criarCardMesa(p)));
+  grade.appendChild(criarCardAdicionar('+ Pedido', async () => {
+    await fetch(`${API}/outros`, { method: 'POST' });
+    carregarOutros();
+  }));
 }
-
-document.getElementById('btn-add-outros').addEventListener('click', async () => {
-  await fetch(`${API}/outros`, { method: 'POST' });
-  carregarOutros();
-});
 
 // cria automaticamente o primeiro pedido de "Outros" se a lista estiver vazia
 async function garantirPrimeiroOutros() {
@@ -377,6 +383,29 @@ document.getElementById('cardapio-modal-excluir').addEventListener('click', asyn
   itemCardapioEditando = null;
   carregarCardapio();
 });
+
+// ---------------- FINALIZAR COMANDA (busca rapida) ----------------
+async function buscarEAbrirComanda() {
+  const valor = prompt('Escaneie ou digite o número da comanda (ou o nome):');
+  if (!valor || !valor.trim()) return;
+  const alvo = valor.trim().toLowerCase();
+
+  const [mesas, outros] = await Promise.all([
+    fetch(`${API}/mesas`).then(r => r.json()),
+    fetch(`${API}/outros`).then(r => r.json())
+  ]);
+
+  const achadaMesa = mesas.find(m => (m.comanda || '').trim().toLowerCase() === alvo);
+  if (achadaMesa) { abrirPainelPedido(achadaMesa, `Mesa ${achadaMesa.numero}`); return; }
+
+  const achadoOutro = outros.find(o => (o.comanda || '').trim().toLowerCase() === alvo);
+  if (achadoOutro) { abrirPainelPedido(achadoOutro, `Pedido ${achadoOutro.numero}`); return; }
+
+  alert(`Não encontrei nenhuma mesa ou pedido aberto com a comanda "${valor}".`);
+}
+
+document.getElementById('btn-finalizar-comanda-mesas').addEventListener('click', buscarEAbrirComanda);
+document.getElementById('btn-finalizar-comanda-outros').addEventListener('click', buscarEAbrirComanda);
 
 // ---------------- INICIO ----------------
 (async function iniciar() {

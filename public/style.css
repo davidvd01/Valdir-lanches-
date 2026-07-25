@@ -133,6 +133,39 @@ html, body {
 }
 .btn-adicionar:hover { background: #fff5ea; }
 
+.card-adicionar {
+  background: none;
+  border: 2px dashed var(--vinho-claro);
+  color: var(--vinho);
+  border-radius: 18px;
+  height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.card-adicionar .simbolo-mais { font-size: 30px; line-height: 1; }
+.card-adicionar:hover { background: #fff5ea; }
+
+.btn-finalizar-comanda {
+  margin-top: 22px;
+  background: var(--vinho);
+  color: #fff;
+  border: none;
+  padding: 14px 22px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  max-width: 780px;
+  width: 100%;
+}
+.btn-finalizar-comanda:hover { background: var(--vinho-claro); }
+
 /* ---------- CARDAPIO ---------- */
 .cardapio-topo {
   display: flex;
@@ -197,7 +230,10 @@ html, body {
   justify-content: space-between;
   align-items: center;
   border-top: 2px solid var(--borda);
-  padding-top: 18px;
+  padding: 18px 0;
+  position: sticky;
+  bottom: 0;
+  background: var(--fundo);
 }
 .total-caixa { font-size: 22px; font-weight: 800; }
 #total-caixa { color: var(--vinho); }
