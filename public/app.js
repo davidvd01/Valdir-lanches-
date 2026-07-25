@@ -28,17 +28,23 @@ async function carregarMesas() {
   const grade = document.getElementById('grade-mesas');
   grade.innerHTML = '';
   mesas.forEach(mesa => grade.appendChild(criarCardMesa(mesa)));
-  grade.appendChild(criarCardAdicionar('+ Mesa', async () => {
+  grade.appendChild(criarCardAcoes('+ Mesa', async () => {
     await fetch(`${API}/mesas`, { method: 'POST' });
     carregarMesas();
   }));
 }
 
-function criarCardAdicionar(texto, aoClicar) {
+function criarCardAcoes(textoAdicionar, aoAdicionar) {
   const div = document.createElement('div');
-  div.className = 'card-adicionar';
-  div.innerHTML = `<span class="simbolo-mais">+</span><span>${texto}</span>`;
-  div.addEventListener('click', aoClicar);
+  div.className = 'card-acoes';
+  div.innerHTML = `
+    <button class="metade-acao topo">
+      <span class="simbolo-mais">+</span> ${textoAdicionar}
+    </button>
+    <button class="metade-acao baixo">🔍 Finalizar comanda</button>
+  `;
+  div.querySelector('.topo').addEventListener('click', aoAdicionar);
+  div.querySelector('.baixo').addEventListener('click', buscarEAbrirComanda);
   return div;
 }
 
@@ -64,7 +70,7 @@ async function carregarOutros() {
   const grade = document.getElementById('grade-outros');
   grade.innerHTML = '';
   pedidos.forEach(p => grade.appendChild(criarCardMesa(p)));
-  grade.appendChild(criarCardAdicionar('+ Pedido', async () => {
+  grade.appendChild(criarCardAcoes('+ Pedido', async () => {
     await fetch(`${API}/outros`, { method: 'POST' });
     carregarOutros();
   }));
@@ -403,9 +409,6 @@ async function buscarEAbrirComanda() {
 
   alert(`Não encontrei nenhuma mesa ou pedido aberto com a comanda "${valor}".`);
 }
-
-document.getElementById('btn-finalizar-comanda-mesas').addEventListener('click', buscarEAbrirComanda);
-document.getElementById('btn-finalizar-comanda-outros').addEventListener('click', buscarEAbrirComanda);
 
 // ---------------- INICIO ----------------
 (async function iniciar() {
