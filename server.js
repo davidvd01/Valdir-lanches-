@@ -147,10 +147,22 @@ app.get('/api/outros', async (req, res) => {
 });
 
 app.post('/api/outros', async (req, res) => {
-  const ultimo = await Pedido.find({ tipo: 'outros' }).sort({ numero: -1 }).limit(1);
+  const inicioHoje = new Date(); inicioHoje.setHours(0, 0, 0, 0);
+  const ultimo = await Pedido.find({ tipo: 'outros', createdAt: { $gte: inicioHoje } })
+    .sort({ numero: -1 }).limit(1);
   const proximoNumero = ultimo.length ? ultimo[0].numero + 1 : 1;
   const pedido = await Pedido.create({ tipo: 'outros', numero: proximoNumero, comanda: '', itens: [] });
   res.json(pedido);
+});
+
+// Apaga uma mesa ou um pedido de "Outros" inteiro (usado pela lixeira no card)
+app.delete('/api/pedidos/:id', async (req, res) => {
+  try {
+    await Pedido.findByIdAndDelete(req.params.id);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
 });
 
 // ---------- ITENS DENTRO DE UM PEDIDO (mesa ou outros) ----------

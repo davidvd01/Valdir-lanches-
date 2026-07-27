@@ -3,6 +3,7 @@ const API = '/api';
 let pedidoAtual = null;   // pedido (mesa ou outros) aberto na tela
 let itemSelecionado = null; // item do cardapio selecionado antes de confirmar
 let itemEditando = null;    // item ja adicionado, sendo editado (lapis)
+let pedidoParaExcluir = null; // mesa/pedido marcado pra excluir (lixeira do card)
 
 const formatarReais = (v) => 'R$ ' + v.toFixed(2).replace('.', ',');
 
@@ -41,7 +42,7 @@ function criarCardAcoes(textoAdicionar, aoAdicionar) {
     <button class="metade-acao topo">
       <span class="simbolo-mais">+</span> ${textoAdicionar}
     </button>
-    <button class="metade-acao baixo">🔍 Finalizar comanda</button>
+    <button class="metade-acao baixo">🔍 Buscar comanda</button>
   `;
   div.querySelector('.topo').addEventListener('click', aoAdicionar);
   div.querySelector('.baixo').addEventListener('click', buscarEAbrirComanda);
@@ -53,6 +54,7 @@ function criarCardMesa(pedido) {
   const div = document.createElement('div');
   div.className = 'card-mesa' + (pedido.itens.length ? ' ocupada' : '');
   div.innerHTML = `
+    <button class="btn-excluir-card" title="Excluir">🗑️</button>
     <div class="card-numero">${pedido.numero}</div>
     <div class="card-comanda">Comanda: <span class="valor-comanda${pedido.comanda ? ' definida' : ''}">${pedido.comanda ? pedido.comanda : '--'}</span></div>
     <div class="card-total ${pedido.itens.length ? '' : 'vazio'}">
@@ -63,7 +65,19 @@ function criarCardMesa(pedido) {
     const titulo = pedido.tipo === 'mesa' ? `Mesa ${pedido.numero}` : `Pedido ${pedido.numero}`;
     abrirPainelPedido(pedido, titulo);
   });
+  div.querySelector('.btn-excluir-card').addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    confirmarExclusaoCard(pedido);
+  });
   return div;
+}
+
+function confirmarExclusaoCard(pedido) {
+  const rotulo = pedido.tipo === 'mesa' ? `a Mesa ${pedido.numero}` : `o Pedido ${pedido.numero}`;
+  document.getElementById('confirmacao-texto').textContent = `Deseja excluir ${rotulo}?`;
+  modalConfirmacao.classList.remove('escondida');
+  modalConfirmacao.dataset.acao = 'excluir-card';
+  pedidoParaExcluir = pedido;
 }
 
 // ---------------- CARREGAR OUTROS ----------------
@@ -296,6 +310,7 @@ document.getElementById('btn-finalizar').addEventListener('click', () => {
 document.getElementById('confirmacao-nao').addEventListener('click', () => {
   modalConfirmacao.classList.add('escondida');
   modalConfirmacao.dataset.acao = '';
+  pedidoParaExcluir = null;
 });
 
 document.getElementById('confirmacao-sim').addEventListener('click', async () => {
@@ -412,6 +427,17 @@ async function buscarEAbrirComanda() {
 
   alert(`Não encontrei nenhuma mesa ou pedido aberto com a comanda "${valor}".`);
 }
+
+document.getElementById('confirmacao-sim').addEventListener('click', async () => {
+  if (modalConfirmacao.dataset.acao !== 'excluir-card' || !pedidoParaExcluir) return;
+  const tipoExcluido = pedidoParaExcluir.tipo;
+  await fetch(`${API}/pedidos/${pedidoParaExcluir._id}`, { method: 'DELETE' });
+  modalConfirmacao.classList.add('escondida');
+  modalConfirmacao.dataset.acao = '';
+  pedidoParaExcluir = null;
+  if (tipoExcluido === 'mesa') carregarMesas();
+  else carregarOutros();
+});
 
 // ---------------- INICIO ----------------
 (async function iniciar() {
