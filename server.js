@@ -17,6 +17,29 @@ app.use(express.static(path.join(__dirname, 'public')));
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI;
 
+// O servidor (Render) roda em UTC, mas a lanchonete opera no horario de Brasilia
+// (UTC-3, sem horario de verao atualmente). Sem isso, pedidos finalizados depois
+// das 21h (horario local) ficavam registrados no dia UTC seguinte e sumiam da
+// aba "Finalizados" do dia certo. Essas funcoes calculam os limites do dia
+// sempre com base no horario de Brasilia, nao no horario interno do servidor.
+const OFFSET_BRASIL_HORAS = 3; // Brasilia = UTC-3
+
+function limitesDoDiaBrasil(dataStr) {
+  const [ano, mes, dia] = dataStr.split('-').map(Number);
+  const inicio = new Date(Date.UTC(ano, mes - 1, dia, OFFSET_BRASIL_HORAS, 0, 0, 0));
+  const fim = new Date(inicio.getTime() + 24 * 3600000 - 1);
+  return { inicio, fim };
+}
+
+function hojeStrBrasil() {
+  const agora = new Date();
+  const comoLocal = new Date(agora.getTime() - OFFSET_BRASIL_HORAS * 3600000);
+  const ano = comoLocal.getUTCFullYear();
+  const mes = String(comoLocal.getUTCMonth() + 1).padStart(2, '0');
+  const dia = String(comoLocal.getUTCDate()).padStart(2, '0');
+  return `${ano}-${mes}-${dia}`;
+}
+
 mongoose.connect(MONGODB_URI)
   .then(() => console.log('Conectado ao MongoDB'))
   .catch(err => console.error('Erro ao conectar no MongoDB:', err));
@@ -147,7 +170,7 @@ app.get('/api/outros', async (req, res) => {
 });
 
 app.post('/api/outros', async (req, res) => {
-  const inicioHoje = new Date(); inicioHoje.setHours(0, 0, 0, 0);
+  const { inicio: inicioHoje } = limitesDoDiaBrasil(hojeStrBrasil());
   const ultimo = await Pedido.find({ tipo: 'outros', createdAt: { $gte: inicioHoje } })
     .sort({ numero: -1 }).limit(1);
   const proximoNumero = ultimo.length ? ultimo[0].numero + 1 : 1;
@@ -252,10 +275,8 @@ app.post('/api/pedidos/:id/finalizar', async (req, res) => {
 // Lista os finalizados de um dia (padrao: hoje). Use ?data=YYYY-MM-DD
 app.get('/api/finalizados', async (req, res) => {
   try {
-    const dataParam = req.query.data; // 'YYYY-MM-DD'
-    const dia = dataParam ? new Date(dataParam + 'T00:00:00') : new Date();
-    const inicio = new Date(dia); inicio.setHours(0, 0, 0, 0);
-    const fim = new Date(dia); fim.setHours(23, 59, 59, 999);
+    const dataParam = req.query.data || hojeStrBrasil();
+    const { inicio, fim } = limitesDoDiaBrasil(dataParam);
 
     const finalizados = await Finalizado.find({
       finalizadoEm: { $gte: inicio, $lte: fim }
@@ -282,9 +303,7 @@ app.delete('/api/finalizados', async (req, res) => {
   try {
     const dataParam = req.query.data;
     if (!dataParam) return res.status(400).json({ erro: 'Informe a data' });
-    const dia = new Date(dataParam + 'T00:00:00');
-    const inicio = new Date(dia); inicio.setHours(0, 0, 0, 0);
-    const fim = new Date(dia); fim.setHours(23, 59, 59, 999);
+    const { inicio, fim } = limitesDoDiaBrasil(dataParam);
     await Finalizado.deleteMany({ finalizadoEm: { $gte: inicio, $lte: fim } });
     res.json({ ok: true });
   } catch (err) {
