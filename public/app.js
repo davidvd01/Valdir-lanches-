@@ -556,8 +556,30 @@ document.getElementById('btn-enviar-cozinha').addEventListener('click', async ()
 let idsCozinhaConhecidos = new Set();
 let primeiraChecagemCozinha = true;
 
+// O Safari (iPhone) bloqueia qualquer som iniciado sozinho pela pagina ate a
+// pessoa tocar na tela pelo menos uma vez. Por isso criamos o AudioContext
+// aqui e "destravamos" ele no primeiro toque, guardando pra reusar depois -
+// e o mesmo motivo de so tocar no computador e nao no celular antes.
+let audioCtxGlobal = null;
+function obterAudioContext() {
+  if (!audioCtxGlobal) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    audioCtxGlobal = new Ctx();
+  }
+  return audioCtxGlobal;
+}
+function desbloquearAudioNoToque() {
+  const ctx = obterAudioContext();
+  if (ctx && ctx.state === 'suspended') ctx.resume().catch(() => {});
+}
+document.addEventListener('touchstart', desbloquearAudioNoToque, { once: true });
+document.addEventListener('click', desbloquearAudioNoToque, { once: true });
+
 async function tocarBip() {
-  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const ctx = obterAudioContext();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') { try { await ctx.resume(); } catch (e) {} }
   for (let i = 0; i < 3; i++) {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -608,7 +630,23 @@ async function carregarCozinha() {
   renderizarCozinha(tickets);
   idsCozinhaConhecidos = new Set(tickets.map(t => t._id));
   primeiraChecagemCozinha = false;
+  manterTelaAcordada();
 }
+
+let travaDeTela = null;
+async function manterTelaAcordada() {
+  try {
+    if ('wakeLock' in navigator) {
+      travaDeTela = await navigator.wakeLock.request('screen');
+    }
+  } catch (e) { /* alguns navegadores nao suportam, tudo bem, so nao trava a tela */ }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' &&
+      !document.getElementById('secao-cozinha').classList.contains('escondida')) {
+    manterTelaAcordada();
+  }
+});
 
 // fica de olho o tempo todo (mesmo fora da aba Cozinha) se chegou pedido novo, e apita
 async function verificarNovosPedidosCozinha() {
