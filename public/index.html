@@ -18,6 +18,7 @@
     <button class="menu-item" data-secao="outros">Outros</button>
     <button class="menu-item" data-secao="cardapio">Cardápio</button>
     <button class="menu-item" data-secao="finalizados">Finalizados</button>
+    <button class="menu-item" data-secao="cozinha">Cozinha</button>
   </nav>
 
   <main class="conteudo">
@@ -51,6 +52,11 @@
         <button class="btn-finalizar" id="btn-fechar-caixa">Fechar caixa</button>
       </div>
     </section>
+
+    <!-- SECAO COZINHA -->
+    <section id="secao-cozinha" class="secao escondida">
+      <div class="grade-cozinha" id="grade-cozinha"></div>
+    </section>
   </main>
 </div>
 
@@ -62,11 +68,14 @@
         <h2 id="pedido-titulo">Mesa 1</h2>
         <div class="comanda-linha">
           Comanda:
-          <span id="pedido-comanda">--</span>
+          <span id="pedido-comanda" class="valor-comanda">--</span>
           <button id="btn-editar-comanda" class="btn-link">definir</button>
         </div>
       </div>
-      <button id="btn-fechar-painel" class="btn-fechar">×</button>
+      <div class="botoes-cabecalho">
+        <button id="btn-transferir" class="btn-transferir" title="Transferir pedido">🔀 Transferir</button>
+        <button id="btn-fechar-painel" class="btn-fechar">×</button>
+      </div>
     </div>
 
     <div class="busca-wrapper">
@@ -77,6 +86,7 @@
     <div class="lista-itens" id="lista-itens"></div>
 
     <div class="painel-rodape">
+      <button id="btn-enviar-cozinha" class="btn-cozinha">🍳 Enviar p/ cozinha</button>
       <div class="total-linha">Total: <span id="pedido-total">R$ 0,00</span></div>
       <button id="btn-finalizar" class="btn-finalizar">Finalizar conta</button>
     </div>
@@ -138,6 +148,46 @@
   </div>
 </div>
 
+<!-- MODAL DEFINIR/BUSCAR COMANDA (numero ou nome, com opcao de camera) -->
+<div id="modal-comanda" class="overlay escondida">
+  <div class="modal-caixa">
+    <h3 id="modal-comanda-titulo">Definir comanda</h3>
+    <div class="campo">
+      <label>Número da comanda ou nome da pessoa</label>
+      <div class="linha-input-camera">
+        <input type="text" id="modal-comanda-valor" placeholder="Ex: 12 ou Marcos">
+        <button id="btn-abrir-scanner" class="btn-camera" title="Escanear com a câmera">📷</button>
+      </div>
+    </div>
+    <div class="modal-botoes">
+      <button id="modal-comanda-cancelar" class="btn-secundario">Cancelar</button>
+      <button id="modal-comanda-confirmar" class="btn-primario">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SCANNER DE CODIGO DE BARRAS -->
+<div id="modal-scanner" class="overlay escondida">
+  <div class="modal-caixa modal-scanner-caixa">
+    <h3>Aponte a câmera pro código de barras</h3>
+    <div id="leitor-scanner"></div>
+    <div class="modal-botoes">
+      <button id="scanner-cancelar" class="btn-secundario">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TRANSFERIR PEDIDO -->
+<div id="modal-transferir" class="overlay escondida">
+  <div class="modal-caixa">
+    <h3>Transferir pedido para...</h3>
+    <div class="lista-transferir" id="lista-transferir"></div>
+    <div class="modal-botoes">
+      <button id="transferir-cancelar" class="btn-secundario">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL CONFIRMACAO GENERICA -->
 <div id="modal-confirmacao" class="overlay escondida">
   <div class="modal-caixa">
@@ -149,6 +199,7 @@
   </div>
 </div>
 
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

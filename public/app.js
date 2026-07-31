@@ -19,6 +19,7 @@ document.querySelectorAll('.menu-item').forEach(btn => {
     else if (secao === 'outros') carregarOutros();
     else if (secao === 'cardapio') carregarCardapio();
     else if (secao === 'finalizados') carregarFinalizados();
+    else if (secao === 'cozinha') carregarCozinha();
   });
 });
 
@@ -126,16 +127,11 @@ document.getElementById('btn-fechar-painel').addEventListener('click', () => {
   else if (!document.getElementById('secao-outros').classList.contains('escondida')) carregarOutros();
 });
 
-document.getElementById('btn-editar-comanda').addEventListener('click', async () => {
-  const numero = prompt('Escaneie ou digite o número da comanda:');
-  if (numero === null) return;
-  const resp = await fetch(`${API}/mesas/${pedidoAtual._id}/comanda`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ comanda: numero })
-  });
-  pedidoAtual = await resp.json();
-  atualizarComandaNoPainel();
+document.getElementById('btn-editar-comanda').addEventListener('click', () => {
+  document.getElementById('modal-comanda-titulo').textContent = 'Definir comanda';
+  document.getElementById('modal-comanda-valor').value = pedidoAtual.comanda || '';
+  modalComanda.dataset.modo = 'definir';
+  modalComanda.classList.remove('escondida');
 });
 
 function renderizarItens() {
@@ -150,7 +146,8 @@ function renderizarItens() {
     const linha = document.createElement('div');
     linha.className = 'linha-item';
     linha.innerHTML = `
-      <div>
+      <input type="checkbox" class="checkbox-envio" data-id="${item._id}">
+      <div class="conteudo-item">
         <span class="nome">${item.nome}</span>
         <span class="qtd">x${item.quantidade}</span>
         ${item.observacao ? `<div class="obs-item">${item.observacao}</div>` : ''}
@@ -410,21 +407,22 @@ document.getElementById('cardapio-modal-excluir').addEventListener('click', asyn
 
 // ---------------- FINALIZAR COMANDA (busca rapida) ----------------
 async function buscarEAbrirComanda() {
-  const valor = prompt('Escaneie ou digite o número da comanda (ou o nome):');
-  if (!valor || !valor.trim()) return;
-  const alvo = valor.trim().toLowerCase();
+  document.getElementById('modal-comanda-titulo').textContent = 'Buscar comanda';
+  document.getElementById('modal-comanda-valor').value = '';
+  modalComanda.dataset.modo = 'buscar';
+  modalComanda.classList.remove('escondida');
+}
 
+async function executarBuscaComanda(valor) {
+  const alvo = valor.trim().toLowerCase();
   const [mesas, outros] = await Promise.all([
     fetch(`${API}/mesas`).then(r => r.json()),
     fetch(`${API}/outros`).then(r => r.json())
   ]);
-
   const achadaMesa = mesas.find(m => (m.comanda || '').trim().toLowerCase() === alvo);
   if (achadaMesa) { abrirPainelPedido(achadaMesa, `Mesa ${achadaMesa.numero}`); return; }
-
   const achadoOutro = outros.find(o => (o.comanda || '').trim().toLowerCase() === alvo);
   if (achadoOutro) { abrirPainelPedido(achadoOutro, `Pedido ${achadoOutro.numero}`); return; }
-
   alert(`Não encontrei nenhuma mesa ou pedido aberto com a comanda "${valor}".`);
 }
 
@@ -438,6 +436,202 @@ document.getElementById('confirmacao-sim').addEventListener('click', async () =>
   if (tipoExcluido === 'mesa') carregarMesas();
   else carregarOutros();
 });
+
+// ---------------- MODAL DE COMANDA (definir / buscar) COM CAMERA ----------------
+const modalComanda = document.getElementById('modal-comanda');
+const modalScanner = document.getElementById('modal-scanner');
+let instanciaScanner = null;
+
+document.getElementById('modal-comanda-cancelar').addEventListener('click', () => {
+  modalComanda.classList.add('escondida');
+});
+
+document.getElementById('modal-comanda-confirmar').addEventListener('click', async () => {
+  const valor = document.getElementById('modal-comanda-valor').value.trim();
+  if (!valor) return;
+  modalComanda.classList.add('escondida');
+  if (modalComanda.dataset.modo === 'definir') {
+    const resp = await fetch(`${API}/mesas/${pedidoAtual._id}/comanda`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ comanda: valor })
+    });
+    pedidoAtual = await resp.json();
+    atualizarComandaNoPainel();
+  } else {
+    executarBuscaComanda(valor);
+  }
+});
+
+document.getElementById('btn-abrir-scanner').addEventListener('click', () => {
+  modalScanner.classList.remove('escondida');
+  instanciaScanner = new Html5Qrcode('leitor-scanner');
+  instanciaScanner.start(
+    { facingMode: 'environment' },
+    { fps: 10, qrbox: 250 },
+    (textoLido) => {
+      document.getElementById('modal-comanda-valor').value = textoLido;
+      fecharScanner();
+    },
+    () => {} // erro de leitura de cada frame, ignorado (tenta de novo sozinho)
+  ).catch(() => {
+    alert('Não consegui acessar a câmera. Verifique se você permitiu o acesso, ou digite manualmente.');
+    modalScanner.classList.add('escondida');
+  });
+});
+
+function fecharScanner() {
+  if (instanciaScanner) {
+    instanciaScanner.stop().catch(() => {});
+    instanciaScanner = null;
+  }
+  modalScanner.classList.add('escondida');
+}
+
+document.getElementById('scanner-cancelar').addEventListener('click', fecharScanner);
+
+// ---------------- TRANSFERIR PEDIDO ----------------
+const modalTransferir = document.getElementById('modal-transferir');
+
+document.getElementById('btn-transferir').addEventListener('click', async () => {
+  const [mesas, outros] = await Promise.all([
+    fetch(`${API}/mesas`).then(r => r.json()),
+    fetch(`${API}/outros`).then(r => r.json())
+  ]);
+  const lista = document.getElementById('lista-transferir');
+  lista.innerHTML = '';
+  const todos = [...mesas.map(m => ({ ...m, rotulo: `Mesa ${m.numero}` })),
+                 ...outros.map(o => ({ ...o, rotulo: `Pedido ${o.numero}` }))]
+    .filter(p => p._id !== pedidoAtual._id);
+
+  todos.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'opcao-transferir';
+    div.innerHTML = `<span>${p.rotulo}</span>${p.itens.length ? '<span class="tag-ocupada">ocupada</span>' : ''}`;
+    div.addEventListener('click', async () => {
+      await fetch(`${API}/pedidos/${pedidoAtual._id}/transferir`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ destinoId: p._id })
+      });
+      modalTransferir.classList.add('escondida');
+      document.getElementById('tela-pedido').classList.add('escondida');
+      if (!document.getElementById('secao-mesas').classList.contains('escondida')) carregarMesas();
+      else if (!document.getElementById('secao-outros').classList.contains('escondida')) carregarOutros();
+    });
+    lista.appendChild(div);
+  });
+
+  modalTransferir.classList.remove('escondida');
+});
+
+document.getElementById('transferir-cancelar').addEventListener('click', () => {
+  modalTransferir.classList.add('escondida');
+});
+
+// ---------------- ENVIAR PARA COZINHA ----------------
+document.getElementById('btn-enviar-cozinha').addEventListener('click', async () => {
+  const marcados = Array.from(document.querySelectorAll('.checkbox-envio:checked'));
+  if (!marcados.length) { alert('Selecione ao menos um item pra mandar pra cozinha.'); return; }
+
+  const idsSelecionados = marcados.map(c => c.dataset.id);
+  const itensParaEnviar = pedidoAtual.itens
+    .filter(i => idsSelecionados.includes(i._id))
+    .map(i => ({ nome: i.nome, observacao: i.observacao || '' }));
+
+  const titulo = document.getElementById('pedido-titulo').textContent;
+  const tipo = titulo.startsWith('Mesa') ? 'mesa' : 'outros';
+
+  await fetch(`${API}/cozinha`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tipo, numero: pedidoAtual.numero, comanda: pedidoAtual.comanda, itens: itensParaEnviar })
+  });
+
+  marcados.forEach(c => c.checked = false);
+  alert('Enviado pra cozinha!');
+});
+
+// ---------------- ABA COZINHA (com bip de novo pedido) ----------------
+let idsCozinhaConhecidos = new Set();
+let primeiraChecagemCozinha = true;
+
+async function tocarBip() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  for (let i = 0; i < 3; i++) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 880;
+    gain.gain.value = 0.2;
+    osc.connect(gain).connect(ctx.destination);
+    const inicio = ctx.currentTime + i * 0.35;
+    osc.start(inicio);
+    osc.stop(inicio + 0.2);
+  }
+}
+
+function renderizarCozinha(tickets) {
+  const grade = document.getElementById('grade-cozinha');
+  grade.innerHTML = '';
+  if (!tickets.length) {
+    grade.innerHTML = '<div class="vazio-cozinha">Nenhum pedido pendente na cozinha.</div>';
+    return;
+  }
+  tickets.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'card-cozinha';
+    const titulo = t.tipo === 'mesa' ? `Mesa ${t.numero}` : `Pedido ${t.numero}`;
+    div.innerHTML = `
+      <div class="titulo-cozinha">${titulo}</div>
+      <div class="comanda-cozinha">${t.comanda ? 'Comanda: ' + t.comanda : ''}</div>
+      ${t.itens.map(i => `
+        <div class="item-cozinha">
+          <div class="nome-item-cozinha">${i.nome}</div>
+          ${i.observacao ? `<div class="obs-item-cozinha">${i.observacao}</div>` : ''}
+        </div>
+      `).join('')}
+      <button class="btn-pronto">✔ Pronto</button>
+    `;
+    div.querySelector('.btn-pronto').addEventListener('click', async () => {
+      await fetch(`${API}/cozinha/${t._id}`, { method: 'DELETE' });
+      idsCozinhaConhecidos.delete(t._id);
+      carregarCozinha();
+    });
+    grade.appendChild(div);
+  });
+}
+
+async function carregarCozinha() {
+  const resp = await fetch(`${API}/cozinha`);
+  const tickets = await resp.json();
+  renderizarCozinha(tickets);
+  idsCozinhaConhecidos = new Set(tickets.map(t => t._id));
+  primeiraChecagemCozinha = false;
+}
+
+// fica de olho o tempo todo (mesmo fora da aba Cozinha) se chegou pedido novo, e apita
+async function verificarNovosPedidosCozinha() {
+  try {
+    const resp = await fetch(`${API}/cozinha`);
+    const tickets = await resp.json();
+    const idsAtuais = tickets.map(t => t._id);
+    const temNovo = !primeiraChecagemCozinha && idsAtuais.some(id => !idsCozinhaConhecidos.has(id));
+    if (primeiraChecagemCozinha) {
+      idsCozinhaConhecidos = new Set(idsAtuais);
+      primeiraChecagemCozinha = false;
+      return;
+    }
+    if (temNovo) {
+      tocarBip();
+      idsCozinhaConhecidos = new Set(idsAtuais);
+      if (!document.getElementById('secao-cozinha').classList.contains('escondida')) {
+        renderizarCozinha(tickets);
+      }
+    }
+  } catch (e) { /* silencioso: se a rede falhar, so tenta de novo no proximo ciclo */ }
+}
+setInterval(verificarNovosPedidosCozinha, 5000);
 
 // ---------------- INICIO ----------------
 (async function iniciar() {

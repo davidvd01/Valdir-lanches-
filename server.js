@@ -7,6 +7,7 @@ const path = require('path');
 const Item = require('./models/Item');
 const Pedido = require('./models/Pedido');
 const Finalizado = require('./models/Finalizado');
+const Cozinha = require('./models/Cozinha');
 const cardapio = require('./cardapio');
 
 const app = express();
@@ -182,6 +183,63 @@ app.post('/api/outros', async (req, res) => {
 app.delete('/api/pedidos/:id', async (req, res) => {
   try {
     await Pedido.findByIdAndDelete(req.params.id);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+// Transfere todos os itens (e a comanda) de um pedido pra outro.
+// Funciona entre mesas, entre "outros", ou entre mesa <-> outros.
+// A origem fica limpa (mesa some vazia; "outros" e apagado, ja que nao serve mais).
+app.post('/api/pedidos/:id/transferir', async (req, res) => {
+  try {
+    const { destinoId } = req.body;
+    const origem = await Pedido.findById(req.params.id);
+    const destino = await Pedido.findById(destinoId);
+    if (!origem || !destino) return res.status(404).json({ erro: 'Pedido nao encontrado' });
+
+    destino.itens = destino.itens.concat(origem.itens);
+    if (origem.comanda && !destino.comanda) destino.comanda = origem.comanda;
+    await destino.save();
+
+    if (origem.tipo === 'mesa') {
+      origem.itens = [];
+      origem.comanda = '';
+      await origem.save();
+    } else {
+      await origem.deleteOne();
+    }
+
+    res.json({ ok: true, destino });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+// ---------- COZINHA ----------
+
+// Envia itens selecionados pra tela da cozinha
+app.post('/api/cozinha', async (req, res) => {
+  try {
+    const { tipo, numero, comanda, itens } = req.body;
+    const ticket = await Cozinha.create({ tipo, numero, comanda, itens });
+    res.json(ticket);
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+// Lista os tickets pendentes da cozinha
+app.get('/api/cozinha', async (req, res) => {
+  const tickets = await Cozinha.find().sort({ createdAt: 1 });
+  res.json(tickets);
+});
+
+// Marca como pronto / remove o ticket da cozinha
+app.delete('/api/cozinha/:id', async (req, res) => {
+  try {
+    await Cozinha.findByIdAndDelete(req.params.id);
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ erro: err.message });

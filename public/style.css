@@ -291,6 +291,18 @@ html, body {
 .btn-fechar {
   background: none; border: none; color: #fff; font-size: 28px; cursor: pointer; line-height: 1;
 }
+.botoes-cabecalho { display: flex; align-items: center; gap: 14px; }
+.btn-transferir {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-transferir:hover { background: rgba(255,255,255,0.28); }
 
 .busca-wrapper { position: relative; padding: 18px 26px 0; }
 #busca-item {
@@ -336,7 +348,10 @@ html, body {
   justify-content: space-between;
   padding: 12px 0;
   border-bottom: 1px solid #f1ece4;
+  gap: 10px;
 }
+.linha-item .checkbox-envio { width: 20px; height: 20px; flex-shrink: 0; }
+.linha-item .conteudo-item { flex: 1; }
 .linha-item .nome { font-weight: 600; }
 .linha-item .qtd { color: #7a7168; font-size: 14px; margin-left: 8px; }
 .obs-item { font-size: 13px; color: #a97a2e; font-style: italic; margin-top: 2px; }
@@ -354,7 +369,20 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
 }
+.btn-cozinha {
+  background: #fff;
+  border: 2px solid var(--vinho);
+  color: var(--vinho);
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-cozinha:hover { background: #fff5ea; }
 .total-linha { font-size: 20px; font-weight: 800; }
 #pedido-total { color: var(--vinho); }
 .btn-finalizar {
@@ -409,6 +437,68 @@ html, body {
   background: none; border: 1px solid var(--borda);
   padding: 10px 20px; border-radius: 10px; cursor: pointer;
 }
+
+/* ---------- COMANDA COM CAMERA ---------- */
+.linha-input-camera { display: flex; gap: 10px; }
+.linha-input-camera input { flex: 1; }
+.btn-camera {
+  background: var(--vinho);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 20px;
+  width: 48px;
+  cursor: pointer;
+}
+.btn-camera:hover { background: var(--vinho-claro); }
+
+.modal-scanner-caixa { width: 420px; }
+#leitor-scanner { width: 100%; margin: 14px 0; border-radius: 12px; overflow: hidden; }
+
+/* ---------- TRANSFERIR ---------- */
+.lista-transferir { max-height: 320px; overflow-y: auto; margin: 10px 0; }
+.opcao-transferir {
+  padding: 12px 14px;
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+}
+.opcao-transferir:hover { border-color: var(--vinho-claro); background: #fdf6ea; }
+.opcao-transferir .tag-ocupada { color: var(--vinho); font-size: 12px; font-weight: 700; }
+
+/* ---------- COZINHA ---------- */
+.grade-cozinha {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 18px;
+}
+.card-cozinha {
+  background: #fff;
+  border: 2px solid var(--vinho);
+  border-radius: 16px;
+  padding: 16px 18px;
+}
+.card-cozinha .titulo-cozinha { font-size: 19px; font-weight: 800; color: var(--vinho); }
+.card-cozinha .comanda-cozinha { font-size: 13px; color: #a99c8c; margin-bottom: 10px; }
+.card-cozinha .item-cozinha { padding: 6px 0; border-top: 1px dashed var(--borda); }
+.card-cozinha .item-cozinha:first-of-type { border-top: none; }
+.card-cozinha .nome-item-cozinha { font-weight: 700; font-size: 16px; }
+.card-cozinha .obs-item-cozinha { font-size: 13px; color: #a97a2e; font-style: italic; }
+.card-cozinha .btn-pronto {
+  margin-top: 12px;
+  width: 100%;
+  background: var(--verde);
+  color: #fff;
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.vazio-cozinha { color: #b7ada0; padding: 30px 0; }
 
 @media (max-width: 700px) {
   .menu-lateral { width: 84px; }
