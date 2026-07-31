@@ -73,6 +73,37 @@ html, body {
   background: #f9f4ec;
 }
 
+.badge-menu {
+  display: inline-block;
+  background: var(--vermelho);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 2px 8px;
+  margin-left: 6px;
+}
+
+.toast-cozinha {
+  position: fixed;
+  top: 78px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--vinho);
+  color: var(--amarelo);
+  font-weight: 800;
+  font-size: 16px;
+  padding: 14px 24px;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  z-index: 100;
+  animation: piscarToast 0.6s ease-in-out infinite alternate;
+}
+@keyframes piscarToast {
+  from { opacity: 1; transform: translateX(-50%) scale(1); }
+  to { opacity: 0.75; transform: translateX(-50%) scale(1.03); }
+}
+
 .conteudo {
   flex: 1;
   padding: 28px;

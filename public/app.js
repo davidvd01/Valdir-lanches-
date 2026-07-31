@@ -630,6 +630,7 @@ async function carregarCozinha() {
   renderizarCozinha(tickets);
   idsCozinhaConhecidos = new Set(tickets.map(t => t._id));
   primeiraChecagemCozinha = false;
+  atualizarBadgeCozinha(tickets.length);
   manterTelaAcordada();
 }
 
@@ -658,18 +659,39 @@ async function verificarNovosPedidosCozinha() {
     if (primeiraChecagemCozinha) {
       idsCozinhaConhecidos = new Set(idsAtuais);
       primeiraChecagemCozinha = false;
+      atualizarBadgeCozinha(idsAtuais.length);
       return;
     }
     if (temNovo) {
       tocarBip();
+      mostrarToastNovoPedido();
       idsCozinhaConhecidos = new Set(idsAtuais);
       if (!document.getElementById('secao-cozinha').classList.contains('escondida')) {
         renderizarCozinha(tickets);
       }
     }
+    atualizarBadgeCozinha(idsAtuais.length);
   } catch (e) { /* silencioso: se a rede falhar, so tenta de novo no proximo ciclo */ }
 }
 setInterval(verificarNovosPedidosCozinha, 5000);
+
+function atualizarBadgeCozinha(quantidade) {
+  const badge = document.getElementById('badge-cozinha');
+  if (quantidade > 0) {
+    badge.textContent = quantidade;
+    badge.classList.remove('escondida');
+  } else {
+    badge.classList.add('escondida');
+  }
+}
+
+let timeoutToast = null;
+function mostrarToastNovoPedido() {
+  const toast = document.getElementById('toast-cozinha');
+  toast.classList.remove('escondida');
+  clearTimeout(timeoutToast);
+  timeoutToast = setTimeout(() => toast.classList.add('escondida'), 6000);
+}
 
 // ---------------- INICIO ----------------
 (async function iniciar() {
