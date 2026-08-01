@@ -609,7 +609,7 @@ function renderizarCozinha(tickets) {
       <div class="comanda-cozinha">${t.comanda ? 'Comanda: ' + t.comanda : ''}</div>
       ${t.itens.map(i => `
         <div class="item-cozinha">
-          <div class="nome-item-cozinha">${i.quantidade > 1 ? i.quantidade + 'x ' : ''}${i.nome}</div>
+          <div class="nome-item-cozinha">${i.quantidade}x ${i.nome}</div>
           ${i.observacao ? `<div class="obs-item-cozinha">${i.observacao}</div>` : ''}
         </div>
       `).join('')}
