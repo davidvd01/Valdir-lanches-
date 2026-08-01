@@ -537,7 +537,7 @@ document.getElementById('btn-enviar-cozinha').addEventListener('click', async ()
   const idsSelecionados = marcados.map(c => c.dataset.id);
   const itensParaEnviar = pedidoAtual.itens
     .filter(i => idsSelecionados.includes(i._id))
-    .map(i => ({ nome: i.nome, observacao: i.observacao || '' }));
+    .map(i => ({ nome: i.nome, quantidade: i.quantidade, observacao: i.observacao || '' }));
 
   const titulo = document.getElementById('pedido-titulo').textContent;
   const tipo = titulo.startsWith('Mesa') ? 'mesa' : 'outros';
@@ -609,7 +609,7 @@ function renderizarCozinha(tickets) {
       <div class="comanda-cozinha">${t.comanda ? 'Comanda: ' + t.comanda : ''}</div>
       ${t.itens.map(i => `
         <div class="item-cozinha">
-          <div class="nome-item-cozinha">${i.nome}</div>
+          <div class="nome-item-cozinha">${i.quantidade > 1 ? i.quantidade + 'x ' : ''}${i.nome}</div>
           ${i.observacao ? `<div class="obs-item-cozinha">${i.observacao}</div>` : ''}
         </div>
       `).join('')}

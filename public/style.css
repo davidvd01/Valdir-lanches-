@@ -385,7 +385,16 @@ html, body {
 .linha-item .conteudo-item { flex: 1; }
 .linha-item .nome { font-weight: 600; }
 .linha-item .qtd { color: #7a7168; font-size: 14px; margin-left: 8px; }
-.obs-item { font-size: 13px; color: #a97a2e; font-style: italic; margin-top: 2px; }
+.obs-item {
+  font-size: 13px;
+  font-weight: 700;
+  color: #7a3d00;
+  background: #ffe9b8;
+  border-radius: 6px;
+  padding: 2px 7px;
+  display: inline-block;
+  margin-top: 4px;
+}
 .linha-item .direita { display: flex; align-items: center; gap: 14px; }
 .linha-item .subtotal { font-weight: 700; min-width: 80px; text-align: right; }
 .btn-icone {
@@ -517,7 +526,16 @@ html, body {
 .card-cozinha .item-cozinha { padding: 6px 0; border-top: 1px dashed var(--borda); }
 .card-cozinha .item-cozinha:first-of-type { border-top: none; }
 .card-cozinha .nome-item-cozinha { font-weight: 700; font-size: 16px; }
-.card-cozinha .obs-item-cozinha { font-size: 13px; color: #a97a2e; font-style: italic; }
+.card-cozinha .obs-item-cozinha {
+  font-size: 14px;
+  font-weight: 800;
+  color: #7a3d00;
+  background: #ffe9b8;
+  border-radius: 6px;
+  padding: 3px 8px;
+  display: inline-block;
+  margin-top: 3px;
+}
 .card-cozinha .btn-pronto {
   margin-top: 12px;
   width: 100%;

@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const ItemCozinhaSchema = new mongoose.Schema({
   nome: { type: String, required: true },
+  quantidade: { type: Number, default: 1 },
   observacao: { type: String, default: '' }
 }, { _id: false });
 
