@@ -593,7 +593,10 @@ async function tocarBip() {
   }
 }
 
+let ticketsCozinhaAtuais = [];
+
 function renderizarCozinha(tickets) {
+  ticketsCozinhaAtuais = tickets;
   const grade = document.getElementById('grade-cozinha');
   grade.innerHTML = '';
   if (!tickets.length) {
@@ -615,13 +618,15 @@ function renderizarCozinha(tickets) {
       `).join('')}
       <button class="btn-pronto">✔ Pronto</button>
     `;
-    div.querySelector('.btn-pronto').addEventListener('click', async () => {
-      await fetch(`${API}/cozinha/${t._id}`, { method: 'DELETE' });
-      idsCozinhaConhecidos.delete(t._id);
-      carregarCozinha();
-    });
+    div.querySelector('.btn-pronto').addEventListener('click', () => concluirTicketCozinha(t));
     grade.appendChild(div);
   });
+}
+
+async function concluirTicketCozinha(ticket) {
+  await fetch(`${API}/cozinha/${ticket._id}`, { method: 'DELETE' });
+  idsCozinhaConhecidos.delete(ticket._id);
+  carregarCozinha();
 }
 
 async function carregarCozinha() {
@@ -633,6 +638,113 @@ async function carregarCozinha() {
   atualizarBadgeCozinha(tickets.length);
   manterTelaAcordada();
 }
+
+// ---------------- COMANDO DE VOZ NA COZINHA ----------------
+const NUMEROS_POR_EXTENSO = {
+  um: 1, uma: 1, dois: 2, duas: 2, três: 3, tres: 3, quatro: 4, cinco: 5,
+  seis: 6, sete: 7, oito: 8, nove: 9, dez: 10, onze: 11, doze: 12, treze: 13,
+  quatorze: 14, catorze: 14, quinze: 15, dezesseis: 16, dezessete: 17,
+  dezoito: 18, dezenove: 19, vinte: 20
+};
+
+function extrairNumeroDoTexto(texto) {
+  const comDigito = texto.match(/\d+/);
+  if (comDigito) return parseInt(comDigito[0], 10);
+  const palavras = texto.toLowerCase().split(/\s+/);
+  for (const p of palavras) {
+    if (NUMEROS_POR_EXTENSO[p] !== undefined) return NUMEROS_POR_EXTENSO[p];
+  }
+  return null;
+}
+
+let reconhecimentoVoz = null;
+let vozDeveFicarLigada = false;
+
+function processarComandoDeVoz(fala) {
+  const texto = fala.toLowerCase();
+  const ehComandoDeFinalizar = texto.includes('finaliz') || texto.includes('pronto') || texto.includes('conclu');
+  if (!ehComandoDeFinalizar) return;
+
+  const numero = extrairNumeroDoTexto(texto);
+  if (numero === null) return;
+
+  let tipoAlvo = null;
+  if (texto.includes('mesa')) tipoAlvo = 'mesa';
+  else if (texto.includes('pedido')) tipoAlvo = 'outros';
+
+  const encontrado = ticketsCozinhaAtuais.find(t =>
+    t.numero === numero && (tipoAlvo === null || t.tipo === tipoAlvo)
+  );
+
+  if (encontrado) {
+    concluirTicketCozinha(encontrado);
+    mostrarToastVoz(`✔ ${encontrado.tipo === 'mesa' ? 'Mesa' : 'Pedido'} ${encontrado.numero} finalizado por voz!`);
+  } else {
+    mostrarToastVoz(`Não achei nenhum pedido pendente com esse número.`);
+  }
+}
+
+function mostrarToastVoz(mensagem) {
+  const toast = document.getElementById('toast-cozinha');
+  toast.textContent = mensagem;
+  toast.classList.remove('escondida');
+  clearTimeout(timeoutToast);
+  timeoutToast = setTimeout(() => {
+    toast.classList.add('escondida');
+    toast.textContent = '🔔 Novo pedido na cozinha!';
+  }, 3500);
+}
+
+function iniciarReconhecimentoVoz() {
+  const Reconhecimento = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Reconhecimento) {
+    alert('Esse navegador não tem suporte a comando de voz. Use o Chrome no Android.');
+    return;
+  }
+  reconhecimentoVoz = new Reconhecimento();
+  reconhecimentoVoz.lang = 'pt-BR';
+  reconhecimentoVoz.continuous = true;
+  reconhecimentoVoz.interimResults = false;
+
+  reconhecimentoVoz.onresult = (evento) => {
+    const ultimo = evento.results[evento.results.length - 1];
+    if (ultimo.isFinal) processarComandoDeVoz(ultimo[0].transcript);
+  };
+
+  // O Chrome as vezes para de escutar sozinho apos um tempo de silencio.
+  // Enquanto o interruptor continuar ligado, a gente reinicia sozinho na hora,
+  // pra dar a sensacao de que ficou ouvindo a noite toda sem interrupcao.
+  reconhecimentoVoz.onend = () => {
+    if (vozDeveFicarLigada) {
+      try { reconhecimentoVoz.start(); } catch (e) {}
+    }
+  };
+  reconhecimentoVoz.onerror = () => {
+    if (vozDeveFicarLigada) {
+      try { reconhecimentoVoz.start(); } catch (e) {}
+    }
+  };
+
+  reconhecimentoVoz.start();
+}
+
+document.getElementById('btn-comando-voz').addEventListener('click', () => {
+  const botao = document.getElementById('btn-comando-voz');
+  const status = document.getElementById('status-voz');
+  vozDeveFicarLigada = !vozDeveFicarLigada;
+
+  if (vozDeveFicarLigada) {
+    iniciarReconhecimentoVoz();
+    botao.textContent = '🔴 Desligar comando de voz';
+    botao.classList.add('ativo');
+    status.classList.remove('escondida');
+  } else {
+    if (reconhecimentoVoz) reconhecimentoVoz.stop();
+    botao.textContent = '🎤 Ativar comando de voz';
+    botao.classList.remove('ativo');
+    status.classList.add('escondida');
+  }
+});
 
 let travaDeTela = null;
 async function manterTelaAcordada() {

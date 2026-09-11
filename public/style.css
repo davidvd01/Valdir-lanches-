@@ -549,6 +549,32 @@ html, body {
 }
 .vazio-cozinha { color: #b7ada0; padding: 30px 0; }
 
+.cozinha-topo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.btn-voz {
+  background: var(--vinho);
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-voz.ativo { background: var(--vermelho); }
+.btn-voz:hover { opacity: 0.9; }
+.status-voz {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--vermelho);
+  animation: piscarToast 0.9s ease-in-out infinite alternate;
+}
+
 @media (max-width: 700px) {
   .menu-lateral { width: 84px; }
   .menu-item { padding: 16px 8px; text-align: center; font-size: 13px; }
